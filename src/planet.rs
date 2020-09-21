@@ -77,7 +77,7 @@ fn extrapolate_point(
     let terrain_color = terrain.elevations[closest_elevation].color.into_linear();
 
     let space_point = terrain.origin + planet_point.to_vector();
-    let angle_to_sun = Angle::radians(space_point.y.atan2(space_point.x));
+    let angle_to_sun = Angle::radians(space_point.y.atan2(space_point.x)) + Angle::degrees(180.);
     let distance_to_sun = space_point.distance_to(Default::default());
     let focus_point = Rotation2D::new(angle_to_sun)
         .transform_point(Point2D::from_lengths(terrain.radius, Default::default()));
@@ -175,6 +175,15 @@ impl Default for Light {
         Light {
             color: Srgb::new(1., 1., 1.),
             sols: 1.,
+        }
+    }
+}
+
+impl Light {
+    pub fn from_u8(red: u8, green: u8, blue: u8, sols: f32) -> Self {
+        Self {
+            color: Srgb::new(red, green, blue).into_format(),
+            sols,
         }
     }
 }

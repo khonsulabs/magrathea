@@ -1,9 +1,9 @@
 #[cfg(feature = "cli")]
 mod cli;
-mod coloring;
+pub mod coloring;
 #[cfg(feature = "editor")]
 mod editor;
-mod planet;
+pub mod planet;
 mod terrain;
 mod terrain_point;
 mod types;

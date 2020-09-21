@@ -46,7 +46,7 @@ impl EditorWindow {
     async fn set_origin(&mut self, context: &mut Context, window_position: Point<f32, Scaled>) {
         let radius = self.planet.origin.distance_to(Point::default());
         let bounds = context.last_layout().await.inner_bounds();
-        let click_relative_to_center = window_position - bounds.center().to_vector();
+        let click_relative_to_center = bounds.center() - window_position.to_vector();
         let angle = Angle::radians(click_relative_to_center.y.atan2(click_relative_to_center.x));
         self.planet.origin = Planet::calculate_origin(angle, Length::new(radius));
 

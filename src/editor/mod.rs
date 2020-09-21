@@ -1,6 +1,6 @@
 mod window;
 
-use crate::Edit;
+use crate::cli::args::Edit;
 use kludgine::prelude::*;
 
 pub(crate) fn run(opts: Edit) -> ! {

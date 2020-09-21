@@ -14,7 +14,7 @@ use crate::{
     Kilometers, LinearRgb,
 };
 
-const COLOR_LIGHTEN_DELTA: f32 = 0.2;
+const COLOR_LIGHTEN_DELTA: f32 = 0.1;
 
 pub struct Terrain {
     pub origin: Point2D<f32, Kilometers>,
@@ -33,7 +33,8 @@ impl Terrain {
         let elevation_range =
             (min_elevation - elevation_variance)..(max_elevation + elevation_variance);
 
-        println!("Generating terrain: Elevation Range {:?}", elevation_range);
+        // How much variation in elevation do we want to allow per kilometer of distance?
+        let surface_chaos = rng.gen_range(1.0f32, 20.0);
 
         let mut terrain = Terrain {
             origin: planet.origin,
@@ -42,15 +43,26 @@ impl Terrain {
             elevations: Self::generate_elevations(&planet.colors, &elevation_range, rng),
         };
 
-        // Generate 100 random points (lol)
-        for _ in 0..100 {
+        let terrain_complexity = rng.gen_range(10, 1000);
+
+        for _ in 0..terrain_complexity {
             let x = rng.gen_range(-planet.radius.get(), planet.radius.get());
             let y = rng.gen_range(-planet.radius.get(), planet.radius.get());
+            let location = TerrainLocation::new(Point2D::new(x, y));
+            let acceptable_range =
+                if let Some(neighbor) = terrain.points.nearest_neighbor(&location) {
+                    let distance = location.point.distance_to(neighbor.location.point);
+                    (neighbor.elevation.0 - distance * surface_chaos)
+                        ..(neighbor.elevation.0 + distance * surface_chaos)
+                } else {
+                    -surface_chaos..surface_chaos
+                };
             terrain.points.insert(TerrainPoint {
-                location: TerrainLocation {
-                    point: Point2D::new(x, y),
-                },
-                elevation: Elevation(rng.gen_range(elevation_range.start, elevation_range.end)),
+                location,
+                elevation: Elevation(rng.gen_range(
+                    acceptable_range.start.max(elevation_range.start),
+                    acceptable_range.end.min(elevation_range.end),
+                )),
             });
         }
 

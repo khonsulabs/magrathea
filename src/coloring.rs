@@ -1,62 +1,63 @@
-use crate::elevation::Elevation;
+use crate::types::Kilometers;
+use euclid::Length;
 use palette::Srgb;
 use sorted_vec::partial::SortedVec;
 
+/// A pairing of an elevation and a color
 #[derive(PartialEq, Clone, Copy, Debug)]
-pub struct Coloring {
+pub struct ElevationColor {
+    /// The color used for this elevation
     pub color: Srgb<f32>,
-    pub elevation: Elevation,
+
+    /// The elevation of this color
+    pub elevation: Length<f32, Kilometers>,
 }
 
-impl PartialOrd for Coloring {
+impl PartialOrd for ElevationColor {
+    /// partial_cmp only compares against elevation
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.elevation.partial_cmp(&other.elevation)
     }
 }
 
-impl spade::HasPosition for Coloring {
-    type Point = Elevation;
-
-    fn position(&self) -> Self::Point {
-        self.elevation
-    }
-}
-
-impl Coloring {
-    pub fn from_u8(r: u8, g: u8, b: u8, elevation: f32) -> Self {
+impl ElevationColor {
+    /// Constructor to take RGB byte components and an elevation
+    pub fn from_u8(r: u8, g: u8, b: u8, elevation: Length<f32, Kilometers>) -> Self {
         Self {
             color: Srgb::new(r, g, b).into_format(),
-            elevation: Elevation(elevation),
+            elevation,
         }
     }
 
-    pub fn earthlike() -> SortedVec<Coloring> {
+    /// A basic elevation color palette that kinda resembles an earthlike planet
+    pub fn earthlike() -> SortedVec<ElevationColor> {
         SortedVec::from_unsorted(vec![
             // Deep Ocean
-            Coloring::from_u8(19, 30, 180, -1000.),
+            ElevationColor::from_u8(19, 30, 180, Kilometers::new(-1000.)),
             // Shallow Ocean
-            Coloring::from_u8(98u8, 125, 223, 0.),
+            ElevationColor::from_u8(98u8, 125, 223, Kilometers::new(0.)),
             // Beach
-            Coloring::from_u8(209u8, 207, 169, 100.),
+            ElevationColor::from_u8(209u8, 207, 169, Kilometers::new(100.)),
             // Grass
-            Coloring::from_u8(152u8, 214, 102, 200.),
+            ElevationColor::from_u8(152u8, 214, 102, Kilometers::new(200.)),
             // Forest
-            Coloring::from_u8(47u8, 106, 42, 600.),
+            ElevationColor::from_u8(47u8, 106, 42, Kilometers::new(600.)),
             // Mountain
-            Coloring::from_u8(100u8, 73, 53, 1600.),
+            ElevationColor::from_u8(100u8, 73, 53, Kilometers::new(1600.)),
             // Snow
-            Coloring::from_u8(238u8, 246, 245, 1700.),
+            ElevationColor::from_u8(238u8, 246, 245, Kilometers::new(1700.)),
         ])
     }
 
-    pub fn sunlike() -> SortedVec<Coloring> {
+    /// A basic elevation color palette that kinda resembles a star like our sun
+    pub fn sunlike() -> SortedVec<ElevationColor> {
         SortedVec::from_unsorted(vec![
             // Deep base glow
-            Coloring::from_u8(189, 31, 10, 0.),
+            ElevationColor::from_u8(189, 31, 10, Kilometers::new(0.)),
             // Bright middle
-            Coloring::from_u8(250, 156, 56, 20.),
+            ElevationColor::from_u8(250, 156, 56, Kilometers::new(20.)),
             // Hot top
-            Coloring::from_u8(255, 218, 41, 400.),
+            ElevationColor::from_u8(255, 218, 41, Kilometers::new(400.)),
         ])
     }
 }

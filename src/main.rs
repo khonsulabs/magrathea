@@ -3,7 +3,6 @@ mod cli;
 mod coloring;
 #[cfg(feature = "editor")]
 mod editor;
-mod elevation;
 mod planet;
 mod terrain;
 mod terrain_point;

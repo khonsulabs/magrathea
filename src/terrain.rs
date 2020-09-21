@@ -7,20 +7,19 @@ use sorted_vec::partial::SortedVec;
 use spade::rtree::RTree;
 
 use crate::{
-    coloring::Coloring,
-    elevation::Elevation,
+    coloring::ElevationColor,
     planet::Planet,
     terrain_point::{TerrainLocation, TerrainPoint},
-    Kilometers, LinearRgb,
+    types::{Kilometers, LinearRgb},
 };
 
 const COLOR_LIGHTEN_DELTA: f32 = 0.1;
 
-pub struct Terrain {
+pub(crate) struct Terrain {
     pub origin: Point2D<f32, Kilometers>,
     pub radius: Length<f32, Kilometers>,
     pub points: RTree<TerrainPoint>,
-    pub elevations: SortedVec<Coloring>,
+    pub elevations: SortedVec<ElevationColor>,
 }
 
 impl Terrain {
@@ -59,7 +58,7 @@ impl Terrain {
                 };
             terrain.points.insert(TerrainPoint {
                 location,
-                elevation: Elevation(rng.gen_range(
+                elevation: Kilometers::new(rng.gen_range(
                     acceptable_range.start.max(elevation_range.start),
                     acceptable_range.end.min(elevation_range.end),
                 )),
@@ -72,10 +71,10 @@ impl Terrain {
     /// Take an ordered list of elevations and their colors, and create a gradient of colors
     /// with ranges of elevations spanning `elevation_range`
     fn generate_elevations(
-        colorings: &SortedVec<Coloring>,
+        colorings: &SortedVec<ElevationColor>,
         elevation_range: &Range<f32>,
         rng: &mut SmallRng,
-    ) -> SortedVec<Coloring> {
+    ) -> SortedVec<ElevationColor> {
         let mut elevations = SortedVec::with_capacity(colorings.capacity());
         let mut carryover = 0f32;
 
@@ -117,23 +116,23 @@ impl Terrain {
         elevation_range: Range<f32>,
         base_color: LinearRgb,
         rng: &mut SmallRng,
-        output: &mut SortedVec<Coloring>,
+        output: &mut SortedVec<ElevationColor>,
     ) {
         // Subdivide this range randomly into 3 bands of coloring
         let midpoint = rng.gen_range(elevation_range.start, elevation_range.end);
         let midpoint_color = rng.gen_range(0., COLOR_LIGHTEN_DELTA);
 
-        output.insert(Coloring {
+        output.insert(ElevationColor {
             color: Srgb::from_linear(base_color),
-            elevation: Elevation(elevation_range.start),
+            elevation: Kilometers::new(elevation_range.start),
         });
-        output.insert(Coloring {
+        output.insert(ElevationColor {
             color: Srgb::from_linear(base_color.lighten(midpoint_color)),
-            elevation: Elevation(midpoint),
+            elevation: Kilometers::new(midpoint),
         });
-        output.insert(Coloring {
+        output.insert(ElevationColor {
             color: Srgb::from_linear(base_color.lighten(COLOR_LIGHTEN_DELTA)),
-            elevation: Elevation(elevation_range.end),
+            elevation: Kilometers::new(elevation_range.end),
         });
     }
 }

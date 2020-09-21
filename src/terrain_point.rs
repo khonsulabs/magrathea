@@ -1,10 +1,9 @@
-use crate::elevation::Elevation;
-use crate::Kilometers;
-use euclid::Point2D;
+use crate::types::Kilometers;
+use euclid::{Length, Point2D};
 
 pub struct TerrainPoint {
     pub location: TerrainLocation,
-    pub elevation: Elevation,
+    pub elevation: Length<f32, Kilometers>,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]

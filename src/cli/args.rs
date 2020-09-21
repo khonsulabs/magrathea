@@ -1,5 +1,5 @@
 use crate::{
-    coloring::Coloring,
+    coloring::ElevationColor,
     planet::{Light, Planet},
     types::Kilometers,
 };
@@ -158,7 +158,7 @@ impl Into<Planet> for NewPlanetOptions {
             seed: Uuid::new_v4(),
             origin,
             radius,
-            colors: Coloring::earthlike(),
+            colors: ElevationColor::earthlike(),
         }
     }
 }

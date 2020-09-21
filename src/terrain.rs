@@ -9,7 +9,7 @@ use spade::rtree::RTree;
 use crate::{
     coloring::Coloring,
     elevation::Elevation,
-    planet::PlanetDefinition,
+    planet::Planet,
     terrain_point::{TerrainLocation, TerrainPoint},
     Kilometers, LinearRgb,
 };
@@ -24,7 +24,7 @@ pub struct Terrain {
 }
 
 impl Terrain {
-    pub fn generate(planet: &PlanetDefinition, rng: &mut SmallRng) -> Self {
+    pub fn generate(planet: &Planet, rng: &mut SmallRng) -> Self {
         let min_elevation = planet.colors.first().unwrap().elevation.0;
         let max_elevation = planet.colors.last().unwrap().elevation.0;
 
@@ -43,7 +43,7 @@ impl Terrain {
             elevations: Self::generate_elevations(&planet.colors, &elevation_range, rng),
         };
 
-        let terrain_complexity = rng.gen_range(10, 1000);
+        let terrain_complexity = rng.gen_range(50, 1000);
 
         for _ in 0..terrain_complexity {
             let x = rng.gen_range(-planet.radius.get(), planet.radius.get());

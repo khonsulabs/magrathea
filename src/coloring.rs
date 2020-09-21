@@ -25,7 +25,7 @@ impl spade::HasPosition for Coloring {
 impl Coloring {
     pub fn from_u8(r: u8, g: u8, b: u8, elevation: f32) -> Self {
         Self {
-            color: Srgb::new(r as f32 / 255., g as f32 / 255., b as f32 / 255.),
+            color: Srgb::new(r, g, b).into_format(),
             elevation: Elevation(elevation),
         }
     }
@@ -46,6 +46,17 @@ impl Coloring {
             Coloring::from_u8(100u8, 73, 53, 1600.),
             // Snow
             Coloring::from_u8(238u8, 246, 245, 1700.),
+        ])
+    }
+
+    pub fn sunlike() -> SortedVec<Coloring> {
+        SortedVec::from_unsorted(vec![
+            // Deep base glow
+            Coloring::from_u8(189, 31, 10, 0.),
+            // Bright middle
+            Coloring::from_u8(250, 156, 56, 20.),
+            // Hot top
+            Coloring::from_u8(255, 218, 41, 400.),
         ])
     }
 }

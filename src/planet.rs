@@ -7,7 +7,7 @@ use palette::Srgb;
 use rand::{rngs::SmallRng, Rng, SeedableRng};
 use sorted_vec::partial::SortedVec;
 use uuid::Uuid;
-pub struct PlanetDefinition {
+pub struct Planet {
     pub seed: Uuid,
     pub origin: Point2D<f32, Kilometers>,
     pub radius: Length<f32, Kilometers>,
@@ -17,7 +17,7 @@ pub struct PlanetDefinition {
 fn extrapolate_point(
     planet_point: Point2D<f32, Kilometers>,
     terrain: &Terrain,
-    sun: &Light,
+    sun: &Option<Light>,
     rng: &mut SmallRng,
 ) -> Srgb<u8> {
     let nearest_points = terrain
@@ -70,18 +70,23 @@ fn extrapolate_point(
     let distance_from_focus = planet_point.distance_to(focus_point);
 
     // Shade based on the lighting
-    let distance_dimming = 1.0 - 1. / distance_to_sun;
-    let sphere_dimming = distance_from_focus / (terrain.radius.get() * 1.4);
-    let sun_base_factor = sun.sols * distance_dimming * sphere_dimming;
+    let color = match sun {
+        Some(sun) => {
+            let distance_dimming = 1.0 - 1. / distance_to_sun;
+            let sphere_dimming = distance_from_focus / (terrain.radius.get() * 1.4);
+            let sun_base_factor = sun.sols * distance_dimming * sphere_dimming;
 
-    let lit_by_sun = terrain_color
-        * sun
-            .color
-            .into_linear()
-            // .darken(1.0 - sun_intensity)
-            .darken(sun_base_factor.min(1.0));
+            terrain_color
+                * sun
+                    .color
+                    .into_linear()
+                    // .darken(1.0 - sun_intensity)
+                    .darken(sun_base_factor.min(1.0))
+        }
+        None => terrain_color,
+    };
 
-    let color = Srgb::from_linear(lit_by_sun);
+    let color = Srgb::from_linear(color);
     Srgb::new(
         (color.red * 255.0) as u8,
         (color.green * 255.0) as u8,
@@ -94,8 +99,17 @@ pub struct Light {
     pub sols: f32,
 }
 
-impl PlanetDefinition {
-    pub fn generate(&self, pixels: u32, sun: &Light) -> image::RgbaImage {
+impl Default for Light {
+    fn default() -> Self {
+        Light {
+            color: Srgb::new(1., 1., 1.),
+            sols: 1.,
+        }
+    }
+}
+
+impl Planet {
+    pub fn generate(&self, pixels: u32, sun: &Option<Light>) -> image::RgbaImage {
         let mut rng = SmallRng::from_seed(*self.seed.as_bytes());
         let terrain = Terrain::generate(self, &mut rng);
 
@@ -131,5 +145,13 @@ impl PlanetDefinition {
         }
 
         image
+    }
+
+    pub fn calculate_origin(
+        angle: Angle<f32>,
+        distance: Length<f32, Kilometers>,
+    ) -> Point2D<f32, Kilometers> {
+        let rotation = Rotation2D::new(angle);
+        rotation.transform_point(Point2D::from_lengths(distance, Default::default()))
     }
 }

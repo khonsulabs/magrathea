@@ -8,7 +8,7 @@ mod types;
 pub use self::{
     coloring::Coloring,
     elevation::Elevation,
-    planet::PlanetDefinition,
+    planet::Planet,
     terrain::Terrain,
     terrain_point::{TerrainLocation, TerrainPoint},
     types::{Kilometers, LinearRgb, Pixels},

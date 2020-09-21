@@ -20,54 +20,49 @@ fn extrapolate_point(
     sun: &Light,
     rng: &mut SmallRng,
 ) -> Srgb<u8> {
-    let nearest_point = terrain
+    let nearest_points = terrain
         .points
-        .nearest_neighbor(&TerrainLocation::new(planet_point))
-        .unwrap();
+        .nearest_n_neighbors(&TerrainLocation::new(planet_point), 3);
+    assert!(nearest_points.len() == 3);
 
-    let (closest_elevation, matched) = match terrain.elevations.binary_search_by(|probe| {
+    let distances = nearest_points
+        .iter()
+        .map(|p| p.location.point.distance_to(planet_point))
+        .collect::<Vec<_>>();
+    let total_distance = distances.iter().sum::<f32>();
+
+    let extrapolated_elevation = nearest_points
+        .iter()
+        .enumerate()
+        .map(|(index, point)| distances[index] / total_distance * point.elevation.0)
+        .sum();
+
+    let closest_elevation = match terrain.elevations.binary_search_by(|probe| {
         probe
             .elevation
-            .partial_cmp(&nearest_point.elevation)
+            .partial_cmp(&extrapolated_elevation)
             .unwrap()
     }) {
-        Ok(index) => (index, true),
-        Err(index) => (index, false),
+        Ok(index) => index,
+        Err(index) => {
+            // We didn't match, generate a random variation between these two elevations with probabilty from how close of a match it is
+            if index == 0 {
+                index
+            } else {
+                let delta_a = terrain.elevations[index].elevation.0 - extrapolated_elevation;
+                let delta_b = extrapolated_elevation - terrain.elevations[index - 1].elevation.0;
+                if rng.gen_bool((delta_a / (delta_a + delta_b)) as f64) {
+                    index
+                } else {
+                    index - 1
+                }
+            }
+        }
     };
 
     let terrain_color = terrain.elevations[closest_elevation].color.into_linear();
 
-    // let terrain_color = if matched || closest_elevation == 0 {
-    //     terrain.elevations[closest_elevation].color.into_linear()
-    // } else if closest_elevation == terrain.elevations.len() {
-    //     terrain.elevations[closest_elevation - 1]
-    //         .color
-    //         .into_linear()
-    // } else {
-    //     // Randomize the pixel based on a weight of how close it is to each elevation
-    //     let (base_elevation, upper_elevation) = if closest_elevation + 1 == terrain.elevations.len()
-    //     {
-    //         (closest_elevation - 1, closest_elevation)
-    //     } else {
-    //         (closest_elevation, closest_elevation + 1)
-    //     };
-    //     let base_elevation = terrain.elevations[base_elevation];
-    //     let upper_elevation = terrain.elevations[upper_elevation];
-
-    //     let distance_to_base = (base_elevation.elevation.0 - nearest_point.elevation.0).abs();
-    //     let distance_to_upper = (upper_elevation.elevation.0 - base_elevation.elevation.0).abs();
-
-    //     if rng.gen::<f32>() * (distance_to_upper + distance_to_base) < distance_to_base {
-    //         let linear = base_elevation.color.into_linear();
-    //         linear.darken(distance_to_base.max(100.) / 1000.)
-    //     } else {
-    //         let linear = upper_elevation.color.into_linear();
-    //         linear.lighten(distance_to_upper.max(100.) / 1000.)
-    //     }
-    // };
-
     let space_point = terrain.origin + planet_point.to_vector();
-
     let angle_to_sun = Angle::radians(space_point.y.atan2(space_point.x));
     let distance_to_sun = space_point.distance_to(Default::default());
     let focus_point = Rotation2D::new(angle_to_sun)

@@ -43,9 +43,9 @@ impl Coloring {
             // Forest
             Coloring::from_u8(47u8, 106, 42, 600.),
             // Mountain
-            // Coloring::from_u8(100u8, 73, 53, 1600.),
+            Coloring::from_u8(100u8, 73, 53, 1600.),
             // Snow
-            // Coloring::from_u8(238u8, 246, 245, 1700.),
+            Coloring::from_u8(238u8, 246, 245, 1700.),
         ])
     }
 }

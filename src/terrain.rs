@@ -34,7 +34,7 @@ impl Terrain {
             (min_elevation - elevation_variance)..(max_elevation + elevation_variance);
 
         // How much variation in elevation do we want to allow per kilometer of distance?
-        let surface_chaos = rng.gen_range(1.0f32, 20.0);
+        let surface_chaos = rng.gen_range(1.0f32, 2.0);
 
         let mut terrain = Terrain {
             origin: planet.origin,

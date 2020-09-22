@@ -3,6 +3,7 @@ use palette::encoding::Linear;
 use palette::rgb::Rgb;
 
 /// Unit type for use in euclid geometric types to represent kilometers
+#[derive(Clone, Copy, Default)]
 pub struct Kilometers;
 
 impl Kilometers {

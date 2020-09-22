@@ -1,18 +1,18 @@
+use std::{collections::HashMap, hash::Hash};
+
 use crate::{
     coloring::ElevationColor,
     terrain::Terrain,
-    terrain_point::TerrainLocation,
     types::{Kilometers, Pixels},
 };
 use euclid::{Angle, Length, Point2D, Rotation2D, Vector2D};
-use palette::Shade;
 use palette::Srgb;
-use rand::{rngs::SmallRng, Rng, SeedableRng};
+use rand::{rngs::SmallRng, SeedableRng};
 use sorted_vec::partial::SortedVec;
 use uuid::Uuid;
 
 /// A Procedural Planet definition
-pub struct Planet {
+pub struct Planet<Kind> {
     /// The unique value that is used to seed the random number generator
     pub seed: Uuid,
 
@@ -23,95 +23,22 @@ pub struct Planet {
     pub radius: Length<f32, Kilometers>,
 
     /// The ElevationColors used to generate the terrain
-    pub colors: SortedVec<ElevationColor>,
+    pub colors: SortedVec<ElevationColor<Kind>>,
 }
 
-fn extrapolate_point(
-    planet_point: Point2D<f32, Kilometers>,
-    terrain: &Terrain,
-    sun: &Option<Light>,
-    rng: &mut SmallRng,
-) -> Srgb<u8> {
-    let nearest_points = terrain
-        .points
-        .nearest_n_neighbors(&TerrainLocation::new(planet_point), 3);
-    assert!(nearest_points.len() == 3);
-
-    let distances = nearest_points
-        .iter()
-        .map(|p| p.location.point.distance_to(planet_point))
-        .collect::<Vec<_>>();
-    let total_distance = distances.iter().sum::<f32>();
-
-    let extrapolated_elevation = Kilometers::new(
-        nearest_points
-            .iter()
-            .enumerate()
-            .map(|(index, point)| distances[index] / total_distance * point.elevation.get())
-            .sum(),
-    );
-
-    let closest_elevation = match terrain.elevations.binary_search_by(|probe| {
-        probe
-            .elevation
-            .partial_cmp(&extrapolated_elevation)
-            .unwrap()
-    }) {
-        Ok(index) => index,
-        Err(index) => {
-            // We didn't match, generate a random variation between these two elevations with probabilty from how close of a match it is
-            if index == 0 {
-                index
-            } else {
-                let delta_a = terrain.elevations[index].elevation - extrapolated_elevation;
-                let delta_b = extrapolated_elevation - terrain.elevations[index - 1].elevation;
-                if rng.gen_bool((delta_a / (delta_a + delta_b)).get() as f64) {
-                    index
-                } else {
-                    index - 1
-                }
-            }
-        }
-    };
-
-    let terrain_color = terrain.elevations[closest_elevation].color.into_linear();
-
-    let space_point = terrain.origin + planet_point.to_vector();
-    let angle_to_sun = Angle::radians(space_point.y.atan2(space_point.x)) + Angle::degrees(180.);
-    let distance_to_sun = space_point.distance_to(Default::default());
-    let focus_point = Rotation2D::new(angle_to_sun)
-        .transform_point(Point2D::from_lengths(terrain.radius, Default::default()));
-    let distance_from_focus = planet_point.distance_to(focus_point);
-
-    // Shade based on the lighting
-    let color = match sun {
-        Some(sun) => {
-            let distance_dimming = 1.0 - 1. / distance_to_sun;
-            let sphere_dimming = distance_from_focus / (terrain.radius.get() * 1.4);
-            let sun_base_factor = sun.sols * distance_dimming * sphere_dimming;
-
-            terrain_color
-                * sun
-                    .color
-                    .into_linear()
-                    // .darken(1.0 - sun_intensity)
-                    .darken(sun_base_factor.min(1.0))
-        }
-        None => terrain_color,
-    };
-
-    let color = Srgb::from_linear(color);
-    Srgb::new(
-        (color.red * 255.0) as u8,
-        (color.green * 255.0) as u8,
-        (color.blue * 255.0) as u8,
-    )
+pub struct GeneratedPlanet<Kind> {
+    pub image: image::RgbaImage,
+    pub terrain: Terrain<Kind>,
+    pub stats: HashMap<Kind, u32>,
 }
 
-impl Planet {
+impl<Kind> Planet<Kind>
+where
+    Kind: Clone + Hash + Eq,
+{
     /// Generates an image of `pixels` wide, and `pixels` tall. If a light is provided
     /// a shadow is simulated, and the colors are mixed with the light's color
-    pub fn generate(&self, pixels: u32, sun: &Option<Light>) -> image::RgbaImage {
+    pub fn generate(&self, pixels: u32, sun: &Option<Light>) -> GeneratedPlanet<Kind> {
         let mut rng = SmallRng::from_seed(*self.seed.as_bytes());
         let terrain = Terrain::generate(self, &mut rng);
 
@@ -120,6 +47,7 @@ impl Planet {
         let planet_scale = self.radius / radius;
 
         let center = Point2D::from_lengths(radius, radius);
+        let mut stats = HashMap::new();
 
         for (x, y, pixel) in image.enumerate_pixels_mut() {
             let point = Point2D::new(x as f32, y as f32);
@@ -129,7 +57,7 @@ impl Planet {
                 point * planet_scale - Vector2D::from_lengths(self.radius, self.radius);
 
             let color = if distance < radius.get() {
-                let color = extrapolate_point(planet_point, &terrain, sun, &mut rng);
+                let (kind, color) = terrain.extrapolate_point(planet_point, sun);
                 // Inside the boundaries of the planet
                 let delta = radius.get() - distance;
                 let alpha = if delta < 1. {
@@ -137,6 +65,11 @@ impl Planet {
                 } else {
                     255
                 };
+
+                stats
+                    .entry(kind)
+                    .and_modify(|count| *count += 1)
+                    .or_insert(1);
 
                 [color.red as u8, color.green as u8, color.blue as u8, alpha]
             } else {
@@ -146,7 +79,11 @@ impl Planet {
             *pixel = image::Rgba(color);
         }
 
-        image
+        GeneratedPlanet {
+            image,
+            terrain,
+            stats,
+        }
     }
 
     /// Convience method to calculate the origin of a planet if it orbited in an exact circle at `distance`

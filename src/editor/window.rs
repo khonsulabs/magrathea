@@ -5,10 +5,11 @@ use std::time::Duration;
 use crate::{
     cli::args::{Lightable, Edit, PlanetCommand},
     planet::{Light, Planet}, 
+    coloring::Earthlike,
 };
 
 pub struct EditorWindow {
-    planet: Planet,
+    planet: Planet<Earthlike>,
     resolution: u32,
     image: Entity<Image>,
     seed_label: Entity<Label>,
@@ -35,12 +36,12 @@ impl EditorWindow {
     }
 
     async fn generate_image(&self) -> Sprite {
-        let image = self.planet.generate(
+        let generated = self.planet.generate(
             self.resolution,
             &self.light,
         );
 
-        Sprite::single_frame(Texture::new(image::DynamicImage::ImageRgba8(image))).await
+        Sprite::single_frame(Texture::new(image::DynamicImage::ImageRgba8(generated.image))).await
     }
 
     async fn set_origin(&mut self, context: &mut Context, window_position: Point<f32, Scaled>) {
@@ -48,7 +49,7 @@ impl EditorWindow {
         let bounds = context.last_layout().await.inner_bounds();
         let click_relative_to_center = bounds.center() - window_position.to_vector();
         let angle = Angle::radians(click_relative_to_center.y.atan2(click_relative_to_center.x));
-        self.planet.origin = Planet::calculate_origin(angle, Length::new(radius));
+        self.planet.origin = Planet::<Earthlike>::calculate_origin(angle, Length::new(radius));
 
         self.regenerate_image().await;
 
@@ -103,7 +104,7 @@ impl InteractiveComponent for EditorWindow {
         Ok(())
     }
 
-    async fn receive_input(&mut self, _context: &mut Context, command: Self::Command) -> KludgineResult<()>
+    async fn receive_command(&mut self, _context: &mut Context, command: Self::Command) -> KludgineResult<()>
     {
         match command {
             EditorCommand::RegenerateImage => {

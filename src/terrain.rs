@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use euclid::{Angle, Length, Point2D, Rotation2D};
 use palette::{Shade, Srgb};
-use rand::{rngs::SmallRng, Rng};
+use rand::{rngs::SmallRng, SeedableRng,Rng};
 use sorted_vec::partial::SortedVec;
 use spade::rtree::RTree;
 
@@ -28,7 +28,8 @@ impl<Kind> Terrain<Kind>
 where
     Kind: Clone,
 {
-    pub fn generate(planet: &Planet<Kind>, rng: &mut SmallRng) -> Self {
+    pub fn generate(planet: &Planet<Kind>) -> Self {
+        let mut rng = SmallRng::from_seed(*planet.seed.as_bytes());
         let min_elevation = planet.colors.first().unwrap().elevation.0;
         let max_elevation = planet.colors.last().unwrap().elevation.0;
 
@@ -45,7 +46,7 @@ where
             radius: planet.radius,
             points: RTree::new(),
             surface_chaos,
-            elevations: Self::generate_elevations(&planet.colors, &elevation_range, rng),
+            elevations: Self::generate_elevations(&planet.colors, &elevation_range, &mut rng),
         };
 
         let terrain_complexity = rng.gen_range(50, 1000);

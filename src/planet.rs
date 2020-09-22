@@ -7,7 +7,6 @@ use crate::{
 };
 use euclid::{Angle, Length, Point2D, Rotation2D, Vector2D};
 use palette::Srgb;
-use rand::{rngs::SmallRng, SeedableRng};
 use sorted_vec::partial::SortedVec;
 use uuid::Uuid;
 
@@ -39,8 +38,7 @@ where
     /// Generates an image of `pixels` wide, and `pixels` tall. If a light is provided
     /// a shadow is simulated, and the colors are mixed with the light's color
     pub fn generate(&self, pixels: u32, sun: &Option<Light>) -> GeneratedPlanet<Kind> {
-        let mut rng = SmallRng::from_seed(*self.seed.as_bytes());
-        let terrain = Terrain::generate(self, &mut rng);
+        let terrain = Terrain::generate(self);
 
         let mut image = image::RgbaImage::new(pixels, pixels);
         let radius = Length::<f32, Pixels>::new(pixels as f32 / 2.);
@@ -87,13 +85,17 @@ where
     }
 
     /// Convience method to calculate the origin of a planet if it orbited in an exact circle at `distance`
-    pub fn calculate_origin(
-        angle: Angle<f32>,
-        distance: Length<f32, Kilometers>,
-    ) -> Point2D<f32, Kilometers> {
-        let rotation = Rotation2D::new(angle);
-        rotation.transform_point(Point2D::from_lengths(distance, Default::default()))
+    pub fn set_origin_by_angle(&mut self, angle: Angle<f32>, distance: Length<f32, Kilometers>) {
+        self.origin = calculate_origin(angle, distance);
     }
+}
+
+pub fn calculate_origin(
+    angle: Angle<f32>,
+    distance: Length<f32, Kilometers>,
+) -> Point2D<f32, Kilometers> {
+    let rotation = Rotation2D::new(angle);
+    rotation.transform_point(Point2D::from_lengths(distance, Default::default()))
 }
 
 /// Structure representing a star projecting light. It is not scientific

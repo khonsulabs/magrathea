@@ -49,7 +49,7 @@ impl EditorWindow {
         let bounds = context.last_layout().await.inner_bounds();
         let click_relative_to_center = bounds.center() - window_position.to_vector();
         let angle = Angle::radians(click_relative_to_center.y.atan2(click_relative_to_center.x));
-        self.planet.origin = Planet::<Earthlike>::calculate_origin(angle, Length::new(radius));
+        self.planet.origin = crate::planet::calculate_origin(angle, Length::new(radius));
 
         self.regenerate_image().await;
 

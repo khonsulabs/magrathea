@@ -5,6 +5,7 @@ authors = ["Jonathan Johnson <jon@khonsulabs.com>"]
 edition = "2018"
 description = "A pixel-art procedural planet generation library and tool"
 readme = "./README.md"
+license = "MIT"
 keywords = ["procedural", "planets", "image"]
 categories = ["multimedia::images", "game-development"]
 repository = "https://github.com/khonsulabs/magrathea"

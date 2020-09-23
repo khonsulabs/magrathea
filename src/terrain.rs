@@ -1,33 +1,43 @@
-use std::ops::Range;
-
-use euclid::{Angle, Length, Point2D, Rotation2D};
-use palette::{Shade, Srgb};
-use rand::{rngs::SmallRng, SeedableRng,Rng};
-use sorted_vec::partial::SortedVec;
-use spade::rtree::RTree;
-
 use crate::{
     coloring::ElevationColor,
+    planet::GeneratedPlanet,
     planet::Light,
     planet::Planet,
     terrain_point::{TerrainLocation, TerrainPoint},
-    types::{Kilometers, LinearRgb},
+    types::{Kilometers, LinearRgb, Pixels},
 };
+use euclid::{Angle, Length, Point2D, Rotation2D, Vector2D};
+use palette::{Shade, Srgb};
+use rand::{rngs::SmallRng, Rng, SeedableRng};
+use sorted_vec::partial::SortedVec;
+use spade::rtree::RTree;
+use std::{collections::HashMap, hash::Hash, ops::Range};
 
 const COLOR_LIGHTEN_DELTA: f32 = 0.1;
 
+/// A randomly generated elevation map
 pub struct Terrain<Kind> {
+    /// Per kilometer of distance between another point, how much can the surface change?
     pub surface_chaos: f32,
+
+    /// The origin of the planet
     pub origin: Point2D<f32, Kilometers>,
+
+    /// The radius of the planet
     pub radius: Length<f32, Kilometers>,
+
+    /// A 2d spatial tree of points
     pub points: RTree<TerrainPoint>,
+
+    /// A sorted collection of ElevationColors
     pub elevations: SortedVec<ElevationColor<Kind>>,
 }
 
 impl<Kind> Terrain<Kind>
 where
-    Kind: Clone,
+    Kind: Clone + Hash + Eq,
 {
+    /// Randomly generate a new terrain for the Planet provided
     pub fn generate(planet: &Planet<Kind>) -> Self {
         let mut rng = SmallRng::from_seed(*planet.seed.as_bytes());
         let min_elevation = planet.colors.first().unwrap().elevation.0;
@@ -155,6 +165,7 @@ where
         });
     }
 
+    /// For a given point on the surface, return what kind and what color the point is
     pub fn extrapolate_point(
         &self,
         planet_point: Point2D<f32, Kilometers>,
@@ -239,5 +250,48 @@ where
                 (color.blue * 255.0) as u8,
             ),
         )
+    }
+
+    /// Generates an image of `pixels` wide, and `pixels` tall. If a light is provided
+    /// a shadow is simulated, and the colors are mixed with the light's color
+    pub fn generate_planet(self, pixels: u32, sun: &Option<Light>) -> GeneratedPlanet<Kind> {
+        let mut image = image::RgbaImage::new(pixels, pixels);
+        let radius = Length::<f32, Pixels>::new(pixels as f32 / 2.);
+        let planet_scale = self.radius / radius;
+
+        let center = Point2D::from_lengths(radius, radius);
+        let mut stats = HashMap::new();
+
+        for (x, y, pixel) in image.enumerate_pixels_mut() {
+            let point = Point2D::new(x as f32, y as f32);
+            let distance = point.distance_to(center);
+
+            let planet_point =
+                point * planet_scale - Vector2D::from_lengths(self.radius, self.radius);
+
+            let color = if distance < radius.get() {
+                let (kind, color) = self.extrapolate_point(planet_point, sun);
+                // Inside the boundaries of the planet
+                let delta = radius.get() - distance;
+                let alpha = if delta < 1. {
+                    (255. * delta) as u8
+                } else {
+                    255
+                };
+
+                stats
+                    .entry(kind)
+                    .and_modify(|count| *count += 1)
+                    .or_insert(1);
+
+                [color.red as u8, color.green as u8, color.blue as u8, alpha]
+            } else {
+                Default::default()
+            };
+
+            *pixel = image::Rgba(color);
+        }
+
+        GeneratedPlanet { image, stats }
     }
 }

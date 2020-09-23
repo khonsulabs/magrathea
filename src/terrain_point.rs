@@ -1,18 +1,20 @@
 use crate::types::Kilometers;
 use euclid::{Length, Point2D};
 
+/// A spatial-tree compatible Point and Location
 pub struct TerrainPoint {
     pub location: TerrainLocation,
     pub elevation: Length<f32, Kilometers>,
 }
 
+/// A spacial-tree compatible location
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct TerrainLocation {
     pub point: Point2D<f32, Kilometers>,
 }
 
 impl TerrainLocation {
-    pub fn new(point: Point2D<f32, Kilometers>) -> Self {
+    pub(crate) fn new(point: Point2D<f32, Kilometers>) -> Self {
         Self { point }
     }
 }

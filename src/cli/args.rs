@@ -154,7 +154,7 @@ impl Into<Planet<Earthlike>> for NewPlanetOptions {
         let radius = Length::new(self.radius.unwrap_or(6_371.));
         let origin = planet::calculate_origin(
             self.angle
-                .map(|angle| Angle::radians(angle))
+                .map(Angle::radians)
                 .unwrap_or_else(|| Angle::degrees(45.)),
             distance,
         );

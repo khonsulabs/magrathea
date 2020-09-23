@@ -11,3 +11,6 @@ pub use self::{
     terrain_point::{TerrainLocation, TerrainPoint},
     types::Kilometers,
 };
+
+pub use euclid;
+pub use palette;

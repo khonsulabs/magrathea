@@ -152,8 +152,12 @@ impl Into<Planet<Earthlike>> for NewPlanetOptions {
     fn into(self) -> Planet<Earthlike> {
         let distance = Length::<f32, Kilometers>::new(self.distance.unwrap_or(150_200_000.));
         let radius = Length::new(self.radius.unwrap_or(6_371.));
-        let origin =
-            planet::calculate_origin(Angle::radians(self.angle.unwrap_or(2.35619)), distance);
+        let origin = planet::calculate_origin(
+            self.angle
+                .map(|angle| Angle::radians(angle))
+                .unwrap_or_else(|| Angle::degrees(45.)),
+            distance,
+        );
         Planet {
             seed: Uuid::new_v4(),
             origin,

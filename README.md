@@ -1,5 +1,7 @@
 # Magrathea
 
+[![crate version](https://img.shields.io/crates/v/magrathea.svg)](https://crates.io/crates/magrathea)
+
 ![Example Output from 9/21/2020](./Example.png)
 
 > And thus were created the conditions for a staggering new form of specialist industry: custom-made luxury planet building. The home of this industry was the planet Magrathea, where hyperspatial engineers sucked matter through white holes in space to form it into dream planets—gold planets, platinum planets, soft rubber planets with lots of earthquakes—all lovingly made to meet the exacting standards that the Galaxy’s richest men naturally came to expect. _[From the Hitchhiker's Guide to the Galaxy](https://hitchhikers.fandom.com/wiki/Magrathea)_
@@ -30,7 +32,7 @@ If you wish to also see commands relating to launching the GUI editor, pass the 
 
 Add magrathea to your Cargo.toml:
 
-`magrathea = "*"`
+`magrathea = "0.0.1"`
 
 Create a 128x128 rendering of a random Planet:
 
@@ -43,6 +45,10 @@ let planet = magrathea::Planet {
 };
 let image = planet.generate(128, &Light::defaulFt())
 ```
+
+## Future Development
+
+This is being developed for use in a game that is TBA, by [Khonsu Labs](https://khonsulabs.com/). Stability for this crate means being able to input the same values into the generation functions and receive the same outputs. As such, any minor version upgrade (e.g., 0.1 to 0.2) will be done whenever any changes break existing seed compatibility. Until v0.1, however, **no stability is guaranteed between updates**.
 
 ## License
 

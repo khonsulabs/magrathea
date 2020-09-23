@@ -25,7 +25,7 @@ spade = "1"
 sorted-vec = "0.4"
 serde = "1"
 serde_derive = "1"
-kludgine = { path = "../kludgine", optional = true }
+kludgine = { version = "0.0.1", optional = true }
 structopt = { version = "0.3", optional = true }
 hex = { version = "0.4", optional = true }
 

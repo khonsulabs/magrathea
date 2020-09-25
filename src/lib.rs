@@ -14,3 +14,4 @@ pub use self::{
 
 pub use euclid;
 pub use palette;
+pub use uuid::Uuid;

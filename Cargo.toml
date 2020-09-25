@@ -14,6 +14,7 @@ repository = "https://github.com/khonsulabs/magrathea"
 default = []
 cli = ["structopt", "hex"]
 editor = ["kludgine", "cli"]
+serialization = ["palette/serializing", "uuid/serde"]
 
 [dependencies]
 image = "0.23"
@@ -24,8 +25,6 @@ uuid = { version = "0.8", features = ["v4"] }
 euclid = "0.22"
 spade = "1"
 sorted-vec = "0.4"
-serde = "1"
-serde_derive = "1"
 kludgine = { version = "0.0.1", optional = true }
 structopt = { version = "0.3", optional = true }
 hex = { version = "0.4", optional = true }

@@ -55,12 +55,12 @@ impl ElevationColor<Earthlike> {
     pub fn earthlike() -> SortedVec<Self> {
         SortedVec::from_unsorted(vec![
             ElevationColor::from_u8(Earthlike::DeepOcean, 19, 30, 180, Kilometers::new(-1000.)),
-            ElevationColor::from_u8(Earthlike::ShallowOcean, 98u8, 125, 223, Kilometers::new(0.)),
-            ElevationColor::from_u8(Earthlike::Beach, 209u8, 207, 169, Kilometers::new(100.)),
-            ElevationColor::from_u8(Earthlike::Grass, 152u8, 214, 102, Kilometers::new(200.)),
-            ElevationColor::from_u8(Earthlike::Forest, 47u8, 106, 42, Kilometers::new(600.)),
-            ElevationColor::from_u8(Earthlike::Mountain, 100u8, 73, 53, Kilometers::new(1600.)),
-            ElevationColor::from_u8(Earthlike::Snow, 238u8, 246, 245, Kilometers::new(1700.)),
+            ElevationColor::from_u8(Earthlike::ShallowOcean, 98, 125, 223, Kilometers::new(0.)),
+            ElevationColor::from_u8(Earthlike::Beach, 209, 207, 169, Kilometers::new(100.)),
+            ElevationColor::from_u8(Earthlike::Grass, 152, 214, 102, Kilometers::new(200.)),
+            ElevationColor::from_u8(Earthlike::Forest, 47, 106, 42, Kilometers::new(600.)),
+            ElevationColor::from_u8(Earthlike::Mountain, 100, 73, 53, Kilometers::new(1600.)),
+            ElevationColor::from_u8(Earthlike::Snow, 238, 246, 245, Kilometers::new(1700.)),
         ])
     }
 }

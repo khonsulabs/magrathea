@@ -1,8 +1,6 @@
 use crate::{
     coloring::ElevationColor,
-    planet::GeneratedPlanet,
-    planet::Light,
-    planet::Planet,
+    planet::{GeneratedPlanet, Light, Planet},
     terrain_point::{TerrainLocation, TerrainPoint},
     types::{Kilometers, LinearRgb, Pixels},
 };
@@ -39,7 +37,10 @@ where
 {
     /// Randomly generate a new terrain for the Planet provided
     pub fn generate(planet: &Planet<Kind>) -> Self {
-        let mut rng = SmallRng::from_seed(*planet.seed.as_bytes());
+        let mut seed: [u8; 32] = [0; 32];
+        seed[0..16].clone_from_slice(planet.seed.as_bytes());
+        seed[16..32].clone_from_slice(planet.seed.as_bytes());
+        let mut rng = SmallRng::from_seed(seed);
         let min_elevation = planet.colors.first().unwrap().elevation.0;
         let max_elevation = planet.colors.last().unwrap().elevation.0;
 
@@ -49,7 +50,7 @@ where
             (min_elevation - elevation_variance)..(max_elevation + elevation_variance);
 
         // How much variation in elevation do we want to allow per kilometer of distance?
-        let surface_chaos = rng.gen_range(1.0f32, 2.0);
+        let surface_chaos = rng.gen_range(1.0f32..2.0);
 
         let mut terrain = Terrain {
             origin: planet.origin,
@@ -59,11 +60,11 @@ where
             elevations: Self::generate_elevations(&planet.colors, &elevation_range, &mut rng),
         };
 
-        let terrain_complexity = rng.gen_range(50, 1000);
+        let terrain_complexity = rng.gen_range(50..1000);
 
         for _ in 0..terrain_complexity {
-            let x = rng.gen_range(-planet.radius.get(), planet.radius.get());
-            let y = rng.gen_range(-planet.radius.get(), planet.radius.get());
+            let x = rng.gen_range(-planet.radius.get()..planet.radius.get());
+            let y = rng.gen_range(-planet.radius.get()..planet.radius.get());
             let location = TerrainLocation::new(Point2D::new(x, y));
             let acceptable_range =
                 if let Some(neighbor) = terrain.points.nearest_neighbor(&location) {
@@ -76,8 +77,8 @@ where
             terrain.points.insert(TerrainPoint {
                 location,
                 elevation: Kilometers::new(rng.gen_range(
-                    acceptable_range.start.max(elevation_range.start),
-                    acceptable_range.end.min(elevation_range.end),
+                    acceptable_range.start.max(elevation_range.start)
+                        ..acceptable_range.end.min(elevation_range.end),
                 )),
             });
         }
@@ -121,7 +122,7 @@ where
                 );
             } else {
                 let next = colorings[index + 1].elevation.0;
-                let end = rng.gen_range(elevation, next);
+                let end = rng.gen_range(elevation..next);
                 Self::generate_elevation_range_into(
                     &coloring.kind,
                     elevation..end,
@@ -145,8 +146,8 @@ where
         output: &mut SortedVec<ElevationColor<Kind>>,
     ) {
         // Subdivide this range randomly into 3 bands of coloring
-        let midpoint = rng.gen_range(elevation_range.start, elevation_range.end);
-        let midpoint_color = rng.gen_range(0., COLOR_LIGHTEN_DELTA);
+        let midpoint = rng.gen_range(elevation_range.start..elevation_range.end);
+        let midpoint_color = rng.gen_range(0f32..COLOR_LIGHTEN_DELTA);
 
         output.insert(ElevationColor {
             kind: kind.clone(),

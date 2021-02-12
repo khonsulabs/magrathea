@@ -1,8 +1,7 @@
-mod coloring;
-mod planet;
-mod terrain;
-mod terrain_point;
-mod types;
+pub use euclid;
+pub use palette;
+pub use image;
+pub use uuid::Uuid;
 
 pub use self::{
     coloring::ElevationColor,
@@ -12,6 +11,9 @@ pub use self::{
     types::Kilometers,
 };
 
-pub use euclid;
-pub use palette;
-pub use uuid::Uuid;
+pub mod coloring;
+pub mod planet;
+mod terrain;
+mod terrain_point;
+mod types;
+

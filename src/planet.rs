@@ -7,6 +7,7 @@ use sorted_vec::partial::SortedVec;
 use uuid::Uuid;
 
 /// A Procedural Planet definition
+#[derive(Debug)]
 pub struct Planet<Kind> {
     /// The unique value that is used to seed the random number generator
     pub seed: Uuid,
@@ -30,6 +31,14 @@ impl<Kind> Planet<Kind>
 where
     Kind: Clone + Hash + Eq,
 {
+    pub fn new_from_iter<I: IntoIterator<Item = ElevationColor<Kind>>>(seed: Uuid, origin: Point2D<f32, Kilometers>, radius: Length<f32, Kilometers>, colors: I) -> Self {
+        Self {
+            seed,
+            origin,
+            radius,
+            colors: SortedVec::from_unsorted(colors.into_iter().collect()),
+        }
+    }
     /// Generates an image of `pixels` wide, and `pixels` tall. If a light is provided
     /// a shadow is simulated, and the colors are mixed with the light's color
     pub fn generate(&self, pixels: u32, sun: &Option<Light>) -> GeneratedPlanet<Kind> {

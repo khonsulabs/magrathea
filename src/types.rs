@@ -1,6 +1,4 @@
 use euclid::Length;
-use palette::encoding::Linear;
-use palette::rgb::Rgb;
 
 /// Unit type for use in euclid geometric types to represent kilometers
 #[derive(Clone, Copy, Default)]
@@ -13,5 +11,3 @@ impl Kilometers {
 }
 /// Unit type for use in euclid geometric types to represent pixel measurements
 pub(crate) struct Pixels;
-
-pub(crate) type LinearRgb = Rgb<Linear<palette::encoding::Srgb>, f32>;

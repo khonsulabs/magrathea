@@ -4,13 +4,15 @@ use crate::{coloring::ElevationColor, terrain::Terrain, types::Kilometers};
 use euclid::{Angle, Length, Point2D, Rotation2D};
 use palette::Srgb;
 use sorted_vec::partial::SortedVec;
-use uuid::Uuid;
 
 /// A Procedural Planet definition
 #[derive(Debug)]
 pub struct Planet<Kind> {
     /// The unique value that is used to seed the random number generator
-    pub seed: Uuid,
+    pub seed: u64,
+
+    /// Controls how "busy" the surface is -- a larger amount of chaos means a much bumpier surface
+    pub max_chaos: f32,
 
     /// The origin of the planet relative to the star it orbits
     pub origin: Point2D<f32, Kilometers>,
@@ -22,6 +24,12 @@ pub struct Planet<Kind> {
     pub colors: SortedVec<ElevationColor<Kind>>,
 }
 
+pub trait SurfaceDefinition {
+    fn max_chaos() -> f32 {
+        4.
+    }
+}
+
 pub struct GeneratedPlanet<Kind> {
     pub image: image::RgbaImage,
     pub stats: HashMap<Kind, u32>,
@@ -31,14 +39,40 @@ impl<Kind> Planet<Kind>
 where
     Kind: Clone + Hash + Eq,
 {
-    pub fn new_from_iter<I: IntoIterator<Item = ElevationColor<Kind>>>(seed: Uuid, origin: Point2D<f32, Kilometers>, radius: Length<f32, Kilometers>, colors: I) -> Self {
+    pub fn new_from_iter<I: IntoIterator<Item = ElevationColor<Kind>>>(
+        seed: u64,
+        origin: Point2D<f32, Kilometers>,
+        radius: Length<f32, Kilometers>,
+        colors: I,
+    ) -> Self
+    where
+        Kind: SurfaceDefinition,
+    {
         Self {
             seed,
             origin,
             radius,
+            max_chaos: Kind::max_chaos(),
             colors: SortedVec::from_unsorted(colors.into_iter().collect()),
         }
     }
+
+    pub fn new_from_iter_with_chaos<I: IntoIterator<Item = ElevationColor<Kind>>>(
+        seed: u64,
+        origin: Point2D<f32, Kilometers>,
+        radius: Length<f32, Kilometers>,
+        colors: I,
+        max_chaos: f32,
+    ) -> Self {
+        Self {
+            seed,
+            origin,
+            radius,
+            max_chaos,
+            colors: SortedVec::from_unsorted(colors.into_iter().collect()),
+        }
+    }
+
     /// Generates an image of `pixels` wide, and `pixels` tall. If a light is provided
     /// a shadow is simulated, and the colors are mixed with the light's color
     pub fn generate(&self, pixels: u32, sun: &Option<Light>) -> GeneratedPlanet<Kind> {

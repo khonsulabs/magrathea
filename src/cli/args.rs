@@ -3,9 +3,9 @@ use crate::{
     planet::{self, Light, Planet},
     types::Kilometers,
 };
+use rand::{thread_rng, Rng};
 use std::path::PathBuf;
 use structopt::StructOpt;
-use uuid::Uuid;
 
 use euclid::{Angle, Length};
 use palette::Srgb;
@@ -158,11 +158,7 @@ impl Into<Planet<Earthlike>> for NewPlanetOptions {
                 .unwrap_or_else(|| Angle::degrees(45.)),
             distance,
         );
-        Planet {
-            seed: Uuid::new_v4(),
-            origin,
-            radius,
-            colors: ElevationColor::earthlike(),
-        }
+        let mut rng = thread_rng();
+        Planet::new_from_iter(rng.gen(), origin, radius, ElevationColor::earthlike())
     }
 }

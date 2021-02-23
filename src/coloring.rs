@@ -1,7 +1,6 @@
-use crate::types::Kilometers;
+use crate::{planet::SurfaceDefinition, types::Kilometers};
 use euclid::Length;
 use palette::Srgb;
-use sorted_vec::partial::SortedVec;
 
 /// A pairing of an elevation and a color
 #[derive(Clone, Copy, Debug)]
@@ -52,16 +51,22 @@ pub enum Earthlike {
 
 impl ElevationColor<Earthlike> {
     /// A basic elevation color palette that kinda resembles an earthlike planet
-    pub fn earthlike() -> SortedVec<Self> {
-        SortedVec::from_unsorted(vec![
-            ElevationColor::from_u8(Earthlike::DeepOcean, 19, 30, 180, Kilometers::new(-1000.)),
+    pub fn earthlike() -> Vec<Self> {
+        vec![
+            ElevationColor::from_u8(Earthlike::DeepOcean, 19, 30, 180, Kilometers::new(-2000.)),
             ElevationColor::from_u8(Earthlike::ShallowOcean, 98, 125, 223, Kilometers::new(0.)),
             ElevationColor::from_u8(Earthlike::Beach, 209, 207, 169, Kilometers::new(100.)),
             ElevationColor::from_u8(Earthlike::Grass, 152, 214, 102, Kilometers::new(200.)),
             ElevationColor::from_u8(Earthlike::Forest, 47, 106, 42, Kilometers::new(600.)),
             ElevationColor::from_u8(Earthlike::Mountain, 100, 73, 53, Kilometers::new(1600.)),
             ElevationColor::from_u8(Earthlike::Snow, 238, 246, 245, Kilometers::new(1700.)),
-        ])
+        ]
+    }
+}
+
+impl SurfaceDefinition for Earthlike {
+    fn max_chaos() -> f32 {
+        7.
     }
 }
 
@@ -74,14 +79,20 @@ pub enum Sunlike {
 
 impl ElevationColor<Sunlike> {
     /// A basic elevation color palette that kinda resembles a star like our sun
-    pub fn sunlike() -> SortedVec<Self> {
-        SortedVec::from_unsorted(vec![
+    pub fn sunlike() -> Vec<Self> {
+        vec![
             // Deep base glow
             ElevationColor::from_u8(Sunlike::DeepBase, 189, 31, 10, Kilometers::new(-200.)),
             // Bright middle
             ElevationColor::from_u8(Sunlike::BrightMiddle, 250, 156, 56, Kilometers::new(-180.)),
             // Hot top
             ElevationColor::from_u8(Sunlike::HotTop, 255, 218, 41, Kilometers::new(200.)),
-        ])
+        ]
+    }
+}
+
+impl SurfaceDefinition for Sunlike {
+    fn max_chaos() -> f32 {
+        20.
     }
 }

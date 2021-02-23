@@ -5,7 +5,6 @@ pub mod coloring;
 mod editor;
 pub mod planet;
 mod terrain;
-mod terrain_point;
 mod types;
 
 pub use types::*;

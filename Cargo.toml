@@ -1,6 +1,6 @@
 [package]
 name = "magrathea"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Jonathan Johnson <jon@khonsulabs.com>"]
 edition = "2018"
 description = "A pixel-art procedural planet generation library and tool"
@@ -14,20 +14,19 @@ repository = "https://github.com/khonsulabs/magrathea"
 default = []
 cli = ["structopt", "hex"]
 editor = ["kludgine", "cli"]
-serialization = ["palette/serializing", "uuid/serde"]
+serialization = ["palette/serializing"]
 
 [dependencies]
 image = "0.23"
 palette = "0.5"
 anyhow = "1"
 rand = { version = "0.8", features = ["small_rng"] }
-uuid = { version = "0.8", features = ["v4"] }
 euclid = "0.22"
-spade = "1"
 sorted-vec = "0.5"
 kludgine = { version = "0.0.2", optional = true }
 structopt = { version = "0.3", optional = true }
 hex = { version = "0.4", optional = true }
+noise = "0.7"
 
 [[bin]]
 name = "magrathea"
